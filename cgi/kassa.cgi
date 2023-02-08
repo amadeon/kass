@@ -54,7 +54,7 @@ print <<HTML__;
 <TITLE>Электронная касса</TITLE>
 
 <script language ='JavaScript' src='http://srv.ecolines.ru/kkm/kkmwindow.js'></script>
-<script language ='JavaScript' src='http://srv.ecolines.ru/kkm/kkmfunc.js'></script>
+<script language ='JavaScript' src='http://srv.ecolines.ru/kkm/kkmfunc.js?v=8'></script>
 
 <script language ='JavaScript'>
 
@@ -119,6 +119,14 @@ function CheckIncome()
 
 function PrintCheque()
 {
+    if(document.Money.isCashBack[0].checked==false &&
+       document.Money.isCashBack[1].checked==false &&
+       document.Money.isCashBack[2].checked==false){
+    
+        alert("Нужно выбрать кэш или карта!");
+        return;
+    }
+
     // без сдачи
     if (document.Money.isCashBack[0].checked==true)
     { 
@@ -221,7 +229,7 @@ function FieldView(flag)
 <FORM name='Money'>
 <TABLE width=100% align=center border=0 TopMargin=0pt bgcolor=#F0FFF0>
 <TR>
-<TD width=35pt><INPUT type='radio' checked name='isCashBack' OnClick='FieldView(false);'></INPUT>
+<TD width=35pt><INPUT type='radio' name='isCashBack' OnClick='FieldView(false);'></INPUT>
 <TD width=*><FONT size=3pt>Без сдачи</FONT>
 <TR>
 <TD height=45pt><INPUT type='radio' name='isCashBack' OnClick='FieldView(true);'></INPUT>

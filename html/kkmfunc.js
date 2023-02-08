@@ -33,12 +33,25 @@ function RegisterCheque(KKMPass,Summ,TicketString)
 	return(false);
     }
 
+// Применяемая система налогооблажения в чеке:ОСН - 1;УСН доход - 2;УСН доход-расход - 4;ЕНВД - 8;ЕСН - 16;ПСН - 32;
+//ECR.AttrNumber=1055;
+//ECR.AttrValue=СистемаНалогообложения;
+//ECR.WriteAttribute();
+
+
     // регистрация продажи
     ECR.Name = TicketString;
     ECR.Price = Summ;
     ECR.Quantity = 1;
-    // department is set to 1 but it is not printed on check
-    ECR.Department = 0;
+    //type1 = 0% NDS, type0 = from section
+    //5 норм на подъездном, но дает 10/100 обвод
+    //ECR.TaxTypeNumber = 5;
+    //ECR.Tax = 5;
+    //0 means that department is set to 1 but it is not printed on check
+    //ECR.Department = 0;
+    ECR.TaxTypeNumber = 0; //налог брать из таблицы секций
+    ECR.Tax = 0;
+    ECR.Department = 1; //возможно в явно виде первый отдел сработает по таблице налогов
     if (ECR.Registration() != 0)
     {
 	ECR.DeviceEnabled = 0;
@@ -60,6 +73,7 @@ function CloseCheque(ClientSumm,PayType)
         ECR.Summ = ClientSumm;
         ECR.TypeClose = PayType;
         if (ECR.Delivery() != 0)
+	//if (ECR.CancelCheck() != 0)
         {
             ECR.DeviceEnabled = 0;
             printStatus('Ошибка закрытия чека ( '+ECR.GetLastError()+' )');
@@ -107,22 +121,31 @@ function KKMDoCheque(OperatorName,KKMPass,TicketNum,Summ,ClientSumm,PayType)
     if(OperatorName.length>0)
     {
 	// Печатаем имя оператора
-	ECR.Caption=OperatorName;
+	//ECR.Caption=OperatorName;
 	// На ЧЛ и КЛ
-	ECR.PrintPurpose=3;
-	ECR.Alignment=0;
-	ECR.PrintField();
+	//ECR.PrintPurpose=3;
+	//ECR.Alignment=0;
+	//ECR.PrintField();
 
-	ECR.Caption="~~~~~~~~~~~~~~~~~~~~";
+	//ECR.Caption="~~~~~~~~~~~~~~~~~~~~";
 	// На ЧЛ
-	ECR.PrintPurpose=1;
-	ECR.Alignment=0;
-	ECR.PrintField();
+	//ECR.PrintPurpose=1;
+	//ECR.Alignment=0;
+	//ECR.PrintField();
+
+	//имя кассира через регистр 1021
+	ECR.AttrNumber = 1021;
+	ECR.AttrValue = OperatorName;
+	ECR.WriteAttribute();
+
+	//инн кассира тоже можно
+	//ECR.AttrNumber = 1203;
+	//ECR.AttrValue = OperatorINN;
+	//ECR.WriteAttribute();
     }
 
     // Регистрируем сумму билета в ККМ
     if(!RegisterCheque(KKMPass,Summ,TicketString)) { return(false); }
-
 
     // Закрываем чек внесенной клиентом суммой
     if ( ClientSumm==0 )
@@ -130,12 +153,10 @@ function KKMDoCheque(OperatorName,KKMPass,TicketNum,Summ,ClientSumm,PayType)
 	// закрытие чека наличными без ввода полученной от клиента суммы
 	// или кредиткой, если PayType = 1
         if(!CloseCheque(Summ,PayType)) { return(false); } else { return(true); }
-
     }
     else
     {
         // закрытие чека наличными со сдачей
         if(!CloseCheque(ClientSumm,0)) { return(false); } else { return(true); }
-    
     }
 }
